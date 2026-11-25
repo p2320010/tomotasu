@@ -140,9 +140,23 @@
       matchWebGLToCanvasSize: true
     };
 
+    var unityInst = null;
+    var wasHidden = false;
+    document.addEventListener("visibilitychange", function () {
+      if (document.hidden) {
+        wasHidden = true;
+      } else if (wasHidden && unityInst) {
+        wasHidden = false;
+        try {
+          unityInst.SendMessage("--- Managers ---", "OnWebPageReturnedFromBackground");
+        } catch (e) {}
+      }
+    });
+
     createUnityInstance(canvas, config, function (progress) {
       loadingFill.style.width = Math.round(progress * 100) + "%";
-    }).then(function () {
+    }).then(function (instance) {
+      unityInst = instance;
       loadingFill.style.width = "100%";
       setTimeout(function () {
         loadingScreen.classList.add("hidden");
