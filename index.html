@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="ともたす">
+  <title>ともたす</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+    html, body {
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #1c1c1e;
+      font-family: "Hiragino Maru Gothic ProN", "Rounded Mplus 1c", -apple-system, sans-serif;
+      touch-action: manipulation;
+    }
+    #unity-container {
+      position: fixed;
+      inset: 0;
+      width: 100vw;
+      height: 100dvh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: #1c1c1e;
+    }
+    #unity-canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+      background: #f7f5ed;
+    }
+    #loading-screen {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f7f5ed;
+      z-index: 999;
+      transition: opacity 0.3s ease;
+    }
+    #loading-screen.alert-mode {
+      background: #121014;
+    }
+    #loading-screen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .logo {
+      font-size: 46px;
+      font-weight: 800;
+      color: #3d352e;
+      letter-spacing: 0.08em;
+      margin-bottom: 10px;
+    }
+    .alert-mode .logo {
+      font-size: 38px;
+      color: #f5d13d;
+      letter-spacing: 0.06em;
+      margin-bottom: 16px;
+    }
+    .sub {
+      font-size: 14px;
+      color: #787066;
+      margin-bottom: 28px;
+    }
+    .alert-mode .sub {
+      color: #9e9690;
+    }
+    .bar-bg {
+      width: 220px;
+      height: 14px;
+      background: #e9e4d8;
+      border-radius: 999px;
+      overflow: hidden;
+      padding: 2px;
+    }
+    .alert-mode .bar-bg {
+      width: 180px;
+      height: 8px;
+      background: #2b272e;
+    }
+    .bar-fill {
+      width: 0%;
+      height: 100%;
+      background: #f5cc3d;
+      border-radius: 999px;
+      transition: width 0.15s ease;
+    }
+  </style>
+</head>
+<body>
+  <div id="loading-screen">
+    <div class="logo" id="loading-logo">ともたす</div>
+    <div class="sub" id="loading-sub">〜 マイペースに、相棒と一緒に 〜</div>
+    <div class="bar-bg"><div class="bar-fill" id="loading-fill"></div></div>
+  </div>
+  <div id="unity-container">
+    <canvas id="unity-canvas" tabindex="-1"></canvas>
+  </div>
+
+  <script>
+    // ?alert=1 でショートカットから戻された瞬間、Unityロードを待たずに0.0秒で「・・・見たね？」を表示！
+    (function () {
+      var q = (window.location.search + "&" + window.location.hash).toLowerCase();
+      var isAlert = q.indexOf("alert=1") !== -1 || q.indexOf("action=alert") !== -1;
+      if (isAlert) {
+        var ls = document.getElementById("loading-screen");
+        ls.classList.add("alert-mode");
+        document.getElementById("loading-logo").textContent = "・・・見たね？";
+        document.getElementById("loading-sub").textContent = "タスク画面へ戻っています…";
+        try {
+          var a = new Audio("alert.wav");
+          a.volume = 0.9;
+          a.play().catch(function () {});
+        } catch (e) {}
+      }
+    })();
+  </script>
+
+  <script src="Build/tomotasu.loader.js"></script>
+  <script>
+    var canvas = document.querySelector("#unity-canvas");
+    var loadingScreen = document.querySelector("#loading-screen");
+    var loadingFill = document.querySelector("#loading-fill");
+
+    var config = {
+      dataUrl: "Build/tomotasu.data",
+      frameworkUrl: "Build/tomotasu.framework.js",
+      codeUrl: "Build/tomotasu.wasm",
+      streamingAssetsUrl: "StreamingAssets",
+      companyName: "DefaultCompany",
+      productName: "ともたす",
+      productVersion: "1.0",
+      matchWebGLToCanvasSize: true
+    };
+
+    createUnityInstance(canvas, config, function (progress) {
+      loadingFill.style.width = Math.round(progress * 100) + "%";
+    }).then(function () {
+      loadingFill.style.width = "100%";
+      setTimeout(function () {
+        loadingScreen.classList.add("hidden");
+      }, 150);
+    }).catch(function (message) {
+      alert(message);
+    });
+  </script>
+</body>
+</html>
